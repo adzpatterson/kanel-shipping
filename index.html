@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kanel Shipping Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+
+:root{--bg:#0a0a0c;--surface:#141418;--surface-2:#1c1c22;--border:#2a2a32;--text:#e8e8ec;--text-muted:#8b8b96;--accent:#d4a853;--accent-dim:#d4a85320;--red:#e54d4d;--red-bg:#e54d4d15;--orange:#e8923a;--orange-bg:#e8923a15;--blue:#4d9ee5;--blue-bg:#4d9ee515;--green:#4dc77a;--green-bg:#4dc77a15;--gray:#555;--gray-bg:#55555515;--radius:10px;--font:'DM Sans',-apple-system,sans-serif;--mono:'JetBrains Mono',monospace}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;line-height:1.5}
+.header{display:flex;align-items:center;justify-content:space-between;padding:20px 32px;border-bottom:1px solid var(--border);background:var(--surface)}
+.header-left{display:flex;align-items:center;gap:16px}.header-right{display:flex;align-items:center;gap:12px}
+.logo{font-size:24px;font-weight:700;color:var(--accent);letter-spacing:-0.5px}.logo-sub{font-size:12px;color:var(--text-muted);letter-spacing:1px;text-transform:uppercase}
+.last-updated{font-size:12px;color:var(--text-muted);font-family:var(--mono)}
+.refresh-btn{display:flex;align-items:center;gap:6px;padding:8px 16px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);cursor:pointer;font-family:var(--font);font-size:13px;transition:all .15s}
+.refresh-btn:hover{border-color:var(--accent);color:var(--accent)}.refresh-btn svg{width:16px;height:16px}
+.nav{display:flex;gap:2px;padding:0 32px;background:var(--surface);border-bottom:1px solid var(--border);overflow-x:auto}
+.nav-tab{padding:12px 20px;font-size:13px;font-weight:500;color:var(--text-muted);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:all .15s}
+.nav-tab:hover{color:var(--text)}.nav-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.main{padding:24px 32px}.hidden{display:none!important}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:20px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px}
+.card-label{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted);margin-bottom:4px}
+.card-value{font-size:22px;font-weight:700;font-family:var(--mono)}
+.card-sub{font-size:11px;color:var(--text-muted);margin-top:2px;font-family:var(--mono)}
+.card-value.red{color:var(--red)}.card-value.orange{color:var(--orange)}.card-value.blue{color:var(--blue)}.card-value.green{color:var(--green)}.card-value.gray{color:var(--gray)}
+.filters{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;align-items:center}
+.filter-btn{padding:6px 14px;background:transparent;border:1px solid var(--border);border-radius:20px;color:var(--text-muted);cursor:pointer;font-family:var(--font);font-size:12px;transition:all .15s}
+.filter-btn:hover{border-color:var(--text);color:var(--text)}.filter-btn.active{border-color:var(--accent);color:var(--accent);background:var(--accent-dim)}
+.filter-btn .count{margin-left:6px;font-family:var(--mono);font-size:11px;opacity:.7}
+.search-input{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:8px 14px;color:var(--text);font-family:var(--font);font-size:13px;width:220px;outline:none}
+.search-input:focus{border-color:var(--accent)}
+select.hs{background:var(--surface-2);color:var(--text);border:1px solid var(--border);padding:4px 8px;border-radius:6px;font-family:var(--font);font-size:13px}
+.export-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.export-btn{padding:6px 14px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text-muted);cursor:pointer;font-family:var(--font);font-size:12px}
+.export-btn:hover{border-color:var(--accent);color:var(--accent)}
+.result-count{font-size:12px;color:var(--text-muted);font-family:var(--mono)}
+.table-wrap{border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.table-scroll{overflow-x:auto;max-height:70vh;overflow-y:auto}
+table{width:100%;border-collapse:collapse}
+thead{position:sticky;top:0;z-index:2}
+thead th{padding:10px 14px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted);background:var(--surface-2);border-bottom:1px solid var(--border);white-space:nowrap;cursor:pointer;user-select:none}
+thead th:hover{color:var(--text)}
+tbody td{padding:10px 14px;border-bottom:1px solid var(--border);white-space:nowrap}
+tbody tr:hover{background:var(--surface-2)}
+.num{font-family:var(--mono);text-align:right}
+.badge{display:inline-block;padding:2px 10px;border-radius:12px;font-size:11px;font-weight:600;letter-spacing:.3px}
+.badge-critical{background:var(--red-bg);color:var(--red);border:1px solid #e54d4d40}
+.badge-atrisk{background:var(--orange-bg);color:var(--orange);border:1px solid #e8923a40}
+.badge-healthy{background:var(--blue-bg);color:var(--blue);border:1px solid #4d9ee540}
+.badge-excess{background:var(--green-bg);color:var(--green);border:1px solid #4dc77a40}
+.section-header{font-size:14px;font-weight:600;color:var(--accent);padding:20px 0 12px;border-bottom:1px solid var(--border);margin-bottom:16px}
+/* Chart containers */
+.chart-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
+.chart-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px}
+.chart-box h3{font-size:13px;color:var(--accent);margin-bottom:12px;text-transform:uppercase;letter-spacing:.5px}
+.bar-chart{display:flex;flex-direction:column;gap:6px}
+.bar-row{display:flex;align-items:center;gap:8px;font-size:12px}
+.bar-label{width:80px;text-align:right;color:var(--text-muted);font-family:var(--mono);font-size:11px;flex-shrink:0}
+.bar-track{flex:1;height:20px;background:var(--surface-2);border-radius:4px;overflow:hidden;position:relative}
+.bar-fill{height:100%;border-radius:4px;transition:width .4s;display:flex;align-items:center;justify-content:flex-end;padding-right:6px;font-size:10px;font-family:var(--mono);color:#fff;min-width:fit-content}
+.bar-val{margin-left:8px;font-family:var(--mono);font-size:11px;width:60px;flex-shrink:0}
+/* Benchmark indicator */
+.benchmark{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:12px}
+.benchmark-dot{width:10px;height:10px;border-radius:50%}
+.benchmark-label{font-size:12px;color:var(--text-muted)}
+.benchmark-value{font-size:14px;font-weight:600;font-family:var(--mono)}
+/* Setup screen */
+.setup-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;gap:16px;padding:32px}
+.setup-screen h2{font-size:28px;color:var(--accent)}.setup-screen p{color:var(--text-muted);text-align:center;max-width:400px}
+.setup-screen label{font-size:12px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px}
+.setup-screen input{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px;color:var(--text);font-family:var(--mono);font-size:14px;width:320px;text-align:center}
+.setup-btn{padding:10px 32px;background:var(--accent);border:none;border-radius:var(--radius);color:#000;font-weight:600;cursor:pointer;font-family:var(--font);font-size:14px}
+.setup-error{color:var(--red);font-size:13px;display:none;text-align:center}
+.loading-spinner{width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media(max-width:768px){.header{padding:16px}.nav{padding:0 16px}.main{padding:16px}.cards{grid-template-columns:repeat(2,1fr)}.chart-row{grid-template-columns:1fr}.search-input{width:100%}}
+
+.action-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:8px;display:flex;gap:14px}
+.action-priority{font-size:18px;font-weight:700;font-family:var(--mono);color:var(--accent);min-width:28px}
+.action-body{flex:1}.action-title{font-size:13px;font-weight:600;margin-bottom:4px}
+.action-detail{font-size:11px;color:var(--text-muted);line-height:1.5}
+.ch-pill{display:inline-block;padding:2px 8px;border-radius:4px;font-size:9px;font-weight:600;font-family:var(--mono)}
+.ch-dtc{background:#d4a85325;color:var(--accent)}
+
+</style>
+</head>
+<body>
+<div id="setupScreen" class="setup-screen">
+<h2>Kanel Shipping Dashboard</h2>
+<p style="margin-bottom:12px">Connect to proxy or upload OrderCup export.</p>
+<div style="display:flex;gap:12px;margin-bottom:16px">
+<button class="setup-btn" style="flex:1" onclick="document.getElementById('fileUpload').click()">Upload XLSX / CSV</button>
+<input type="file" id="fileUpload" accept=".xlsx,.csv" style="display:none" onchange="handleFileUpload(this)">
+</div>
+<div style="border-top:1px solid var(--border);padding-top:12px;margin-top:4px">
+<p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:8px">Or connect to proxy:</p>
+<label>Proxy URL</label><input type="text" id="setupUrl" value="http://localhost:3848">
+<label style="margin-top:8px">Data Since</label><input type="text" id="setupSince" value="2025-01-01">
+<button class="setup-btn" onclick="saveConfig()">Connect</button>
+</div>
+<div id="setupError" class="setup-error"></div>
+</div>
+<div id="app" class="hidden">
+<div class="header">
+<div class="header-left"><div><div class="logo">Kanel</div><div class="logo-sub">Shipping & Logistics</div></div></div>
+<div class="header-right">
+<span class="last-updated" id="lastUpdated"></span>
+<label class="hbtn" style="cursor:pointer" title="Shopify Total Sales CSV"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Shopify<input type="file" accept=".csv" style="display:none" onchange="loadShopifyCSV(this)"></label>
+<label class="hbtn" style="cursor:pointer" title="Freightcom Tax Recon CSV"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Freightcom<input type="file" accept=".csv" style="display:none" onchange="loadFreightcomCSV(this)"></label>
+<button class="hbtn" onclick="exportAllCSV()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Export</button>
+<button class="hbtn" id="refreshBtn" onclick="refreshData()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M1 4v6h6"/><path d="M23 20v-6h-6"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/></svg>Refresh</button>
+</div></div>
+<div class="nav">
+<div class="nav-tab active" data-tab="overview" onclick="switchTab('overview')">Overview</div>
+<div class="nav-tab" data-tab="monthly" onclick="switchTab('monthly')">Monthly</div>
+<div class="nav-tab" data-tab="geography" onclick="switchTab('geography')">Geographic</div>
+<div class="nav-tab" data-tab="usintl" onclick="switchTab('usintl')">US / Intl</div>
+<div class="nav-tab" data-tab="delivery" onclick="switchTab('delivery')">Delivery</div>
+<div class="nav-tab" data-tab="weight" onclick="switchTab('weight')">Weight</div>
+<div class="nav-tab" data-tab="carriers" onclick="switchTab('carriers')">Carriers</div>
+<div class="nav-tab" data-tab="benchmarks" onclick="switchTab('benchmarks')">Benchmarks</div>
+<div class="nav-tab" data-tab="deepanalysis" onclick="switchTab('deepanalysis')">Deep Analysis</div>
+<div class="nav-tab" data-tab="shipments" onclick="switchTab('shipments')">Shipments</div>
+</div>
+<div class="main">
+<div id="tab-overview" class="tab-content"></div>
+<div id="tab-monthly" class="tab-content hidden"></div>
+<div id="tab-geography" class="tab-content hidden"></div>
+<div id="tab-usintl" class="tab-content hidden"></div>
+<div id="tab-delivery" class="tab-content hidden"></div>
+<div id="tab-weight" class="tab-content hidden"></div>
+<div id="tab-carriers" class="tab-content hidden"></div>
+<div id="tab-benchmarks" class="tab-content hidden"></div>
+<div id="tab-deepanalysis" class="tab-content hidden"></div>
+<div id="tab-shipments" class="tab-content hidden"></div>
+</div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+let S={config:null,raw:null,shopify:null,freightcom:null,processed:null,shipQ:'',_c:{}};
+let ALL_MONTHS=[],ALL_MONTH_LABELS=[];
+const fmt=(n,d=0)=>n==null||isNaN(n)?'--':Number(n).toLocaleString('en-CA',{minimumFractionDigits:d,maximumFractionDigits:d});
+const fmtD=n=>'$'+fmt(n,2);const fmtD0=n=>'$'+fmt(n,0);const fmtPct=n=>fmt(n,1)+'%';
+const fmtDate=s=>{if(!s)return'--';const d=new Date(s);return isNaN(d)?'--':d.toLocaleDateString('en-CA',{month:'short',day:'numeric',year:'numeric'});};
+const clr=(v,lo,hi)=>v>hi?'red':v>lo?'orange':'green';
+const totalOf=(arr,key)=>arr.reduce((a,b)=>a+(b[key]||0),0);
+const PROV_MAP={'QC':'QC','Quebec':'QC','ON':'ON','Ontario':'ON','BC':'BC','British Columbia':'BC','AB':'AB','Alberta':'AB','MB':'MB','Manitoba':'MB','SK':'SK','Saskatchewan':'SK','NS':'NS','Nova Scotia':'NS','NB':'NB','New Brunswick':'NB','NL':'NL','Newfoundland':'NL','PE':'PE','PEI':'PE','NT':'NT','NU':'NU','YT':'YT'};
+function normProv(s){if(!s)return'Unknown';return PROV_MAP[s.trim()]||s.trim();}
+function getRegion(p){if(p==='QC')return'Quebec';if(p==='ON')return'Ontario';if(['BC','AB','SK','MB'].includes(p))return'Western';if(['NS','NB','NL','PE'].includes(p))return'Atlantic';if(['NT','NU','YT'].includes(p))return'Northern';return'Other';}
+function monthKey(ds){if(!ds)return null;var d=new Date(ds);if(isNaN(d))return null;return d.getFullYear()+'-'+(''+(d.getMonth()+1)).padStart(2,'0');}
+function monthLabel(mk){if(!mk)return'--';var p=mk.split('-');return['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][parseInt(p[1])-1]+' '+p[0].slice(2);}
+function isUSFn(prov,country){var c=(country||'').toLowerCase();if(c.includes('united states')||c==='us'||c==='usa')return true;return['NY','MA','CA','FL','TX','WA','PA','IL','OH','MI','NJ','VA','NC','GA','AZ','CO','CT','ME','VT','NH'].includes(prov);}
+function buildMonthRange(){var ms=new Set();if(S.processed)S.processed.shipments.forEach(function(s){if(s.month)ms.add(s.month);});if(S.shopify)Object.keys(S.shopify).forEach(function(m){ms.add(m);});if(S.freightcom)Object.keys(S.freightcom).forEach(function(m){ms.add(m);});ALL_MONTHS=Array.from(ms).sort();ALL_MONTH_LABELS=ALL_MONTHS.map(monthLabel);}
+function parseCSVLine(line){var vals=[],inQ=false,cur='';for(var i=0;i<line.length;i++){var ch=line[i];if(ch==='"'){inQ=!inQ;}else if(ch===','&&!inQ){vals.push(cur.trim());cur='';}else{cur+=ch;}}vals.push(cur.trim());return vals;}
+function switchTab(t){document.querySelectorAll('.tab-content').forEach(function(e){e.classList.add('hidden');});document.querySelectorAll('.nav-tab').forEach(function(e){e.classList.remove('active');});document.getElementById('tab-'+t).classList.remove('hidden');document.querySelector('.nav-tab[data-tab="'+t+'"]').classList.add('active');}
+
+function handleFileUpload(input){
+  var file=input.files[0];if(!file)return;var err=document.getElementById('setupError');err.textContent='Reading...';err.style.display='block';err.style.color='var(--text-muted)';
+  var reader=new FileReader();reader.onload=function(e){try{var rows;
+    if(file.name.endsWith('.csv')){var text=e.target.result;var lines=text.split('\n').filter(function(l){return l.trim();});var headers=lines[0].split(',').map(function(h){return h.trim().replace(/^"|"$/g,'');});rows=lines.slice(1).map(function(line){var vals=parseCSVLine(line);var obj={};headers.forEach(function(h,i){obj[h]=vals[i]||'';});return obj;});}
+    else{var wb=XLSX.read(e.target.result,{type:'array'});rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);}
+    var shipments=rows.map(function(r){return{id:r.shipment_id||'',order_id:r.order_id||'',ship_date:r.ship_date||r.created_at||'',delivery_date:r.delivery_date||'',carrier:r.carrier||'',service:r.service||'',shipping_price:r.shipping_cost||r.shipping_price||0,weight:r.weight_kg||r.weight||0,length:r.length||0,width:r.width||0,height:r.height||0,item_count:r.item_count||0,item_value:r.item_value||0,ship_to_address:{state:r.ship_to_province||'',city:r.ship_to_city||'',post_code:r.ship_to_postal||'',country:r.ship_to_country||''},tracking_id:r.tracking_id||''};}).filter(function(s){return parseFloat(s.shipping_price)>0;});
+    if(!shipments.length){err.style.color='var(--red)';err.textContent='No shipments.';return;}
+    S.raw={shipments:shipments,customers:[]};S.processed=processShipments(S.raw);S.config={url:'file',since:'file'};
+    document.getElementById('setupScreen').classList.add('hidden');document.getElementById('app').classList.remove('hidden');
+    document.getElementById('lastUpdated').textContent='File: '+file.name+' ('+shipments.length+' shp)';buildMonthRange();renderAll();
+  }catch(ex){err.style.color='var(--red)';err.textContent='Error: '+ex.message;}};
+  if(file.name.endsWith('.csv'))reader.readAsText(file);else reader.readAsArrayBuffer(file);input.value='';
+}
+
+function loadShopifyCSV(input){
+  var file=input.files[0];if(!file)return;var reader=new FileReader();
+  reader.onload=function(e){try{var lines=e.target.result.split('\n').filter(function(l){return l.trim();});var headers=lines[0].split(',').map(function(h){return h.trim().replace(/^"|"$/g,'');});
+    var rows=lines.slice(1).map(function(line){var vals=parseCSVLine(line);var obj={};headers.forEach(function(h,i){obj[h]=vals[i]||'';});return obj;});
+    var monthly={};rows.forEach(function(r){var m;try{var dt=new Date(r.Month);m=dt.getFullYear()+'-'+(''+(dt.getMonth()+1)).padStart(2,'0');}catch(x){return;}if(!m||m<'2025-01')return;
+      if(!monthly[m])monthly[m]={orders:0,gross:0,disc:0,ret:0,net:0,taxes:0,duties:0,total:0,ship_charges:0,label_costs:0,items:0};var d=monthly[m];d.orders++;
+      d.gross+=parseFloat(r['Gross sales']||0);d.disc+=Math.abs(parseFloat(r['Discounts']||0));d.net+=parseFloat(r['Net sales']||0);d.taxes+=parseFloat(r['Taxes']||0);d.duties+=parseFloat(r['Duties']||0);d.total+=parseFloat(r['Total sales']||0);
+      d.ship_charges+=parseFloat(r['Total shipping charges']||r['Shipping charges']||0);d.label_costs+=parseFloat(r['Shipping label costs']||0);d.items+=parseInt(r['Net items sold']||0);});
+    S.shopify=monthly;buildMonthRange();if(S.processed)renderAll();
+    alert('Shopify: '+rows.length+' orders, '+Object.keys(monthly).length+' months');
+  }catch(ex){alert('Error: '+ex.message);}};reader.readAsText(file);input.value='';
+}
+
+function loadFreightcomCSV(input){
+  var file=input.files[0];if(!file)return;var reader=new FileReader();
+  reader.onload=function(e){try{var lines=e.target.result.split('\n').filter(function(l){return l.trim();});var headers=lines[0].split(',').map(function(h){return h.trim().replace(/^"|"$/g,'');});
+    var rows=lines.slice(1).map(function(line){var vals=parseCSVLine(line);var obj={};headers.forEach(function(h,i){obj[h]=(vals[i]||'').replace(/^\$/,'').replace(/,/g,'').trim();});return obj;});
+    var monthly={},total=0;rows.forEach(function(r){var m;try{var dt=new Date(r['Invoice Date']||'');m=dt.getFullYear()+'-'+(''+(dt.getMonth()+1)).padStart(2,'0');}catch(x){return;}if(!m||m<'2025-01')return;
+      var cost=parseFloat(r['Total Shipment charges charged']||0);if(!monthly[m])monthly[m]={count:0,cost:0,gst:0,hst:0,qst:0};var d=monthly[m];d.count++;d.cost+=cost;d.gst+=parseFloat(r['GST']||0);d.hst+=parseFloat(r['HST']||0);d.qst+=parseFloat(r['QST']||0);total+=cost;});
+    S.freightcom=monthly;buildMonthRange();if(S.processed)renderAll();
+    alert('Freightcom: '+rows.length+' shipments, $'+fmt(total,0)+' total');
+  }catch(ex){alert('Error: '+ex.message);}};reader.readAsText(file);input.value='';
+}
+
+function processShipments(raw){
+  var shipments=(raw.shipments||[]).map(function(s){var cost=parseFloat(s.shipping_price)||0;var actualWt=parseFloat(s.weight)||0;var l=parseFloat(s.length)||0,w=parseFloat(s.width)||0,h=parseFloat(s.height)||0;var dimWt=(l&&w&&h)?(l*w*h)/5000:0;var billedWt=Math.max(dimWt,actualWt);var isVol=dimWt>actualWt&&actualWt>0;var addr=s.ship_to_address||{};var prov=normProv(addr.state||'');var country=addr.country||'';var mk=monthKey(s.ship_date);var items=parseInt(s.item_count)||0;var value=parseFloat(s.item_value)||0;var isUS=isUSFn(prov,country);var delivDays=null;if(s.ship_date&&s.delivery_date&&String(s.delivery_date)!=='None'){try{var sd=new Date(s.ship_date),dd=new Date(s.delivery_date);var diff=(dd-sd)/864e5;if(diff>=0&&diff<=30)delivDays=Math.round(diff);}catch(x){}}return{id:s.id||'',orderNum:s.order_id||'',shipDate:s.ship_date||'',delivDate:s.delivery_date||'',month:mk,monthLabel:monthLabel(mk),carrier:s.carrier||'Unknown',service:s.service||'Unknown',cost:cost,actualWt:actualWt,billedWt:billedWt,isVol:isVol,prov:prov,region:getRegion(prov),country:country,city:addr.city||'',items:items,value:value,isUS:isUS,delivDays:delivDays};}).filter(function(s){return s.cost>0;}).sort(function(a,b){return(a.shipDate||'').localeCompare(b.shipDate||'');});
+  var byMonth={};shipments.forEach(function(s){if(!s.month)return;if(!byMonth[s.month])byMonth[s.month]={month:s.month,label:s.monthLabel,count:0,cost:0,weight:0,items:0,value:0,volCount:0,us:0,usCost:0,ca:0,caCost:0,delivTimes:[]};var m=byMonth[s.month];m.count++;m.cost+=s.cost;m.weight+=s.actualWt;m.items+=s.items;m.value+=s.value;if(s.isVol)m.volCount++;if(s.isUS){m.us++;m.usCost+=s.cost;}else{m.ca++;m.caCost+=s.cost;}if(s.delivDays!==null)m.delivTimes.push(s.delivDays);});
+  var monthKeys=Object.keys(byMonth).sort();var monthlyData=monthKeys.map(function(m){var d=byMonth[m];d.avgCost=d.count?d.cost/d.count:0;d.avgWt=d.count?d.weight/d.count:0;d.avgValue=d.count?d.value/d.count:0;d.volPct=d.count?d.volCount/d.count*100:0;d.avgDeliv=d.delivTimes.length?d.delivTimes.reduce(function(a,b){return a+b;},0)/d.delivTimes.length:null;d.onTime5=d.delivTimes.length?d.delivTimes.filter(function(t){return t<=5;}).length/d.delivTimes.length*100:null;return d;});
+  var byProv={};shipments.forEach(function(s){if(!byProv[s.prov])byProv[s.prov]={prov:s.prov,region:s.region,count:0,cost:0,weight:0,delivTimes:[]};var p=byProv[s.prov];p.count++;p.cost+=s.cost;p.weight+=s.actualWt;if(s.delivDays!==null)p.delivTimes.push(s.delivDays);});var geoData=Object.values(byProv).sort(function(a,b){return b.count-a.count;}).map(function(g){g.avgCost=g.count?g.cost/g.count:0;g.pct=shipments.length?g.count/shipments.length*100:0;g.avgDeliv=g.delivTimes.length?g.delivTimes.reduce(function(a,b){return a+b;},0)/g.delivTimes.length:null;return g;});
+  var byCS={};shipments.forEach(function(s){var k=s.carrier+'|||'+s.service;if(!byCS[k])byCS[k]={carrier:s.carrier,service:s.service,count:0,cost:0,weight:0};var c=byCS[k];c.count++;c.cost+=s.cost;c.weight+=s.actualWt;});var carrierData=Object.values(byCS).sort(function(a,b){return b.count-a.count;}).map(function(c){c.avgCost=c.count?c.cost/c.count:0;c.avgWt=c.count?c.weight/c.count:0;c.pct=shipments.length?c.count/shipments.length*100:0;return c;});
+  var wBrackets=[{name:'0-0.5kg',lo:0,hi:0.5},{name:'0.5-1kg',lo:0.5,hi:1},{name:'1-1.5kg',lo:1,hi:1.5},{name:'1.5-2kg',lo:1.5,hi:2},{name:'2kg+',lo:2,hi:999}];var weightData=wBrackets.map(function(wb){var sub=shipments.filter(function(s){return s.actualWt>=wb.lo&&s.actualWt<wb.hi;});return{name:wb.name,count:sub.length,cost:sub.reduce(function(a,b){return a+b.cost;},0),avgCost:sub.length?sub.reduce(function(a,b){return a+b.cost;},0)/sub.length:0,pct:shipments.length?sub.length/shipments.length*100:0};});
+  var dRanges=[{name:'Same day',lo:0,hi:0},{name:'1 day',lo:1,hi:1},{name:'2 days',lo:2,hi:2},{name:'3 days',lo:3,hi:3},{name:'4-5 days',lo:4,hi:5},{name:'6-7 days',lo:6,hi:7},{name:'8+ days',lo:8,hi:30}];var allDeliv=shipments.filter(function(s){return s.delivDays!==null;});var delivData=dRanges.map(function(dr){var sub=allDeliv.filter(function(s){return s.delivDays>=dr.lo&&s.delivDays<=dr.hi;});return{name:dr.name,count:sub.length,pct:allDeliv.length?sub.length/allDeliv.length*100:0};});
+  var totalCost=shipments.reduce(function(a,b){return a+b.cost;},0);var totalCount=shipments.length;var totalValue=shipments.reduce(function(a,b){return a+b.value;},0);var usCount=shipments.filter(function(s){return s.isUS;}).length;var usCost=shipments.filter(function(s){return s.isUS;}).reduce(function(a,b){return a+b.cost;},0);var allDT=allDeliv.map(function(s){return s.delivDays;});
+  return{shipments:shipments,monthlyData:monthlyData,geoData:geoData,carrierData:carrierData,weightData:weightData,delivData:delivData,totals:{totalCost:totalCost,totalCount:totalCount,avgCost:totalCount?totalCost/totalCount:0,totalValue:totalValue,avgValue:totalCount?totalValue/totalCount:0,volCount:shipments.filter(function(s){return s.isVol;}).length,volPct:totalCount?shipments.filter(function(s){return s.isVol;}).length/totalCount*100:0,usCount:usCount,usCost:usCost,caCount:totalCount-usCount,caCost:totalCost-usCost,avgActWt:totalCount?shipments.reduce(function(a,b){return a+b.actualWt;},0)/totalCount:0,avgDeliv:allDT.length?allDT.reduce(function(a,b){return a+b;},0)/allDT.length:null,onTime5:allDT.length?allDT.filter(function(t){return t<=5;}).length/allDT.length*100:null}};
+}
+
+// Shipping cost: OC primary, Shopify fills gaps where OC has <10 shipments
+function getShipCost(m){var ocd=S.processed?S.processed.monthlyData.find(function(d){return d.month===m;}):null;var sh=S.shopify?S.shopify[m]:null;var ocC=ocd?ocd.cost:0,ocN=ocd?ocd.count:0,shL=sh?sh.label_costs:0;if(ocN>=10)return{cost:ocC,src:'OC',n:ocN};if(shL>ocC)return{cost:shL,src:'Shop',n:sh?sh.orders:0};return{cost:ocC||shL,src:ocC?'OC':'Shop',n:ocN||(sh?sh.orders:0)};}
+function getFCCost(m){if(!S.freightcom||!S.freightcom[m])return 0;return S.freightcom[m].cost;}
+
+
+// ===== RENDER: OVERVIEW =====
+function rOverview(){var t=S.processed.totals;var shopNet=0,fcTotal=0,shipCharged=0;ALL_MONTHS.forEach(function(m){var sh=S.shopify?S.shopify[m]:null;if(sh){shopNet+=sh.net;shipCharged+=sh.ship_charges;}fcTotal+=getFCCost(m);});
+  var totalShipCost=0;ALL_MONTHS.forEach(function(m){totalShipCost+=getShipCost(m).cost;});totalShipCost+=fcTotal;
+  var allRev=shopNet||0;var shipPct=allRev?totalShipCost/allRev*100:0;var netAbsorbed=totalShipCost-shipCharged;
+  var h='<div class="cards"><div class="card"><div class="card-label">DTC Net Revenue</div><div class="card-value">'+(S.shopify?fmtD0(shopNet):'Upload Shopify')+'</div></div><div class="card"><div class="card-label">Total Shipping Cost</div><div class="card-value red">'+fmtD0(totalShipCost)+'</div><div class="card-sub">Labels + Freightcom</div></div><div class="card"><div class="card-label">Ship % Revenue</div><div class="card-value '+clr(shipPct,6,10)+'">'+fmtPct(shipPct)+'</div><div class="card-sub">Bench: 8-12%</div></div><div class="card"><div class="card-label">Net Absorbed</div><div class="card-value orange">'+fmtD0(netAbsorbed)+'</div></div><div class="card"><div class="card-label">OC Shipments</div><div class="card-value">'+fmt(t.totalCount)+'</div></div><div class="card"><div class="card-label">Avg Label</div><div class="card-value '+clr(t.avgCost,12,14)+'">'+fmtD(t.avgCost)+'</div></div><div class="card"><div class="card-label">Avg AOV</div><div class="card-value blue">'+fmtD(t.avgValue)+'</div></div><div class="card"><div class="card-label">Avg Delivery</div><div class="card-value '+(t.avgDeliv!=null&&t.avgDeliv<=3?'green':'orange')+'">'+(t.avgDeliv!=null?fmt(t.avgDeliv,1)+'d':'--')+'</div></div></div>';
+  h+='<div class="section-header">Monthly Summary</div><div class="table-wrap"><div class="table-scroll"><table><thead><tr><th>Month</th><th>Orders</th><th>Net Rev</th><th>DTC Label$</th><th>Src</th><th>Freightcom</th><th>Total Ship</th><th>Ship%</th><th>Charged</th><th>Absorbed</th><th>Taxes</th><th>Duties</th></tr></thead><tbody>';
+  ALL_MONTHS.forEach(function(m){var sh=S.shopify?S.shopify[m]:null;var sc=getShipCost(m);var fc=getFCCost(m);var ts=sc.cost+fc;var nr=sh?sh.net:0;var chrg=sh?sh.ship_charges:0;
+    h+='<tr><td style="font-weight:600">'+monthLabel(m)+'</td><td class="num">'+(sh?fmt(sh.orders):fmt(sc.n))+'</td><td class="num">'+(sh?fmtD0(nr):'--')+'</td><td class="num">'+fmtD0(sc.cost)+'</td><td style="font-size:9px;color:var(--text-muted)">'+sc.src+'</td><td class="num">'+fmtD0(fc)+'</td><td class="num" style="font-weight:600">'+fmtD0(ts)+'</td><td class="num" style="color:var(--'+(nr?clr(ts/nr*100,6,10):'text-muted')+')">'+(nr?fmtPct(ts/nr*100):'--')+'</td><td class="num">'+(sh?fmtD0(chrg):'--')+'</td><td class="num" style="color:var(--orange)">'+(sh?fmtD0(ts-chrg):'--')+'</td><td class="num">'+(sh?fmtD0(sh.taxes):'--')+'</td><td class="num">'+(sh&&sh.duties?fmtD(sh.duties):'--')+'</td></tr>';});
+  h+='</tbody></table></div></div>';
+  h+='<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">';
+  h+='<div style="padding:6px 10px;border-radius:6px;font-size:10px;border:1px solid '+(S.processed?'var(--green)':'var(--border)')+'"><span style="color:'+(S.processed?'var(--green)':'var(--text-muted)')+'">OC: '+(S.processed?fmt(t.totalCount)+' shp':'--')+'</span></div>';
+  h+='<div style="padding:6px 10px;border-radius:6px;font-size:10px;border:1px solid '+(S.shopify?'var(--green)':'var(--orange)')+'"><span style="color:'+(S.shopify?'var(--green)':'var(--orange)')+'">Shopify: '+(S.shopify?Object.keys(S.shopify).length+'mo':'Upload')+'</span></div>';
+  h+='<div style="padding:6px 10px;border-radius:6px;font-size:10px;border:1px solid '+(S.freightcom?'var(--green)':'var(--orange)')+'"><span style="color:'+(S.freightcom?'var(--green)':'var(--orange)')+'">FC: '+(S.freightcom?Object.keys(S.freightcom).length+'mo':'Upload')+'</span></div></div>';
+  document.getElementById('tab-overview').innerHTML=h;}
+
+// ===== RENDER: MONTHLY =====
+function rMonthly(){var md=S.processed.monthlyData;var h='<div class="table-wrap"><div class="table-scroll"><table><thead><tr><th>Month</th><th>OC Shp</th><th>Cost</th><th>Avg$</th><th>AvgWt</th><th>AOV</th><th>Vol%</th><th>Deliv</th><th>OT%</th><th>US</th></tr></thead><tbody>';
+  md.forEach(function(m){h+='<tr><td style="font-weight:600">'+m.label+'</td><td class="num">'+fmt(m.count)+'</td><td class="num" style="font-weight:600">'+fmtD0(m.cost)+'</td><td class="num" style="color:var(--'+clr(m.avgCost,12,14)+')">'+fmtD(m.avgCost)+'</td><td class="num">'+fmt(m.avgWt,2)+'kg</td><td class="num">'+fmtD(m.avgValue)+'</td><td class="num">'+fmtPct(m.volPct)+'</td><td class="num">'+(m.avgDeliv!=null?fmt(m.avgDeliv,1)+'d':'--')+'</td><td class="num" style="color:var(--'+(m.onTime5!=null&&m.onTime5>85?'green':'orange')+')">'+(m.onTime5!=null?fmtPct(m.onTime5):'--')+'</td><td class="num">'+fmt(m.us)+'</td></tr>';});
+  h+='</tbody></table></div></div>';document.getElementById('tab-monthly').innerHTML=h;}
+
+// ===== RENDER: GEO =====
+function rGeo(){var geo=S.processed.geoData;var regs={};geo.forEach(function(g){if(!regs[g.region])regs[g.region]={r:g.region,n:0,c:0};regs[g.region].n+=g.count;regs[g.region].c+=g.cost;});var ra=Object.values(regs).sort(function(a,b){return b.n-a.n;});var mx=Math.max.apply(null,ra.map(function(r){return r.n;}).concat([1]));
+  var h='<div class="chart-row"><div class="chart-box"><h3>By Region</h3><div class="bar-chart">'+ra.map(function(r){return'<div class="bar-row"><div class="bar-label" style="min-width:75px">'+r.r+'</div><div class="bar-track"><div class="bar-fill" style="width:'+r.n/mx*100+'%;background:var(--blue)">'+fmt(r.n)+'</div></div><div class="bar-val">'+fmtD(r.c/r.n)+'/shp</div></div>';}).join('')+'</div></div><div class="chart-box"><h3>Cost by Region</h3><div class="bar-chart">'+ra.map(function(r){var a=r.c/r.n;return'<div class="bar-row"><div class="bar-label" style="min-width:75px">'+r.r+'</div><div class="bar-track"><div class="bar-fill" style="width:'+a/22*100+'%;background:var(--'+clr(a,12,15)+')">'+fmtD(a)+'</div></div><div class="bar-val">'+fmtD0(r.c)+'</div></div>';}).join('')+'</div></div></div>';
+  var zn={'QC':'Origin','ON':'Zone 2','BC':'Zone 4-5','AB':'Zone 4-5','MB':'Zone 3','SK':'Zone 3','NS':'Zone 3','NB':'Zone 3','NL':'Zone 4','PE':'Zone 3'};
+  h+='<div class="table-wrap"><div class="table-scroll"><table><thead><tr><th>Prov</th><th>Region</th><th>Shp</th><th>%</th><th>Cost</th><th>Avg$</th><th>Deliv</th><th>Zone</th></tr></thead><tbody>';
+  geo.forEach(function(g){h+='<tr><td style="font-weight:600">'+g.prov+'</td><td style="color:var(--text-muted)">'+g.region+'</td><td class="num">'+fmt(g.count)+'</td><td class="num">'+fmtPct(g.pct)+'</td><td class="num">'+fmtD0(g.cost)+'</td><td class="num" style="color:var(--'+clr(g.avgCost,12,16)+')">'+fmtD(g.avgCost)+'</td><td class="num">'+(g.avgDeliv!=null?fmt(g.avgDeliv,1)+'d':'--')+'</td><td style="font-size:10px;color:var(--text-muted)">'+(zn[g.prov]||'')+'</td></tr>';});
+  h+='</tbody></table></div></div>';document.getElementById('tab-geography').innerHTML=h;}
+
+// ===== RENDER: US/INTL =====
+function rUSIntl(){var t=S.processed.totals,md=S.processed.monthlyData;var h='<div class="cards"><div class="card"><div class="card-label">US Shipments</div><div class="card-value purple">'+fmt(t.usCount)+'</div><div class="card-sub">'+(t.totalCount?fmtPct(t.usCount/t.totalCount*100):'0')+'</div></div><div class="card"><div class="card-label">US Avg</div><div class="card-value">'+(t.usCount?fmtD(t.usCost/t.usCount):'--')+'</div></div><div class="card"><div class="card-label">CA Avg</div><div class="card-value green">'+(t.caCount?fmtD(t.caCost/t.caCount):'--')+'</div></div></div>';
+  h+='<div class="table-wrap"><div class="table-scroll"><table><thead><tr><th>Month</th><th>CA</th><th>CA$</th><th>CaAvg</th><th>US</th><th>US$</th><th>UsAvg</th></tr></thead><tbody>';
+  md.forEach(function(m){h+='<tr><td style="font-weight:600">'+m.label+'</td><td class="num">'+fmt(m.ca)+'</td><td class="num">'+fmtD0(m.caCost)+'</td><td class="num">'+(m.ca?fmtD(m.caCost/m.ca):'--')+'</td><td class="num" style="color:var(--purple)">'+fmt(m.us)+'</td><td class="num">'+fmtD0(m.usCost)+'</td><td class="num">'+(m.us?fmtD(m.usCost/m.us):'--')+'</td></tr>';});
+  h+='</tbody></table></div></div>';
+  if(S.shopify){h+='<div class="section-header">Duties & Taxes</div><div class="table-wrap"><div class="table-scroll"><table><thead><tr><th>Month</th><th>Duties</th><th>Taxes</th></tr></thead><tbody>';ALL_MONTHS.forEach(function(m){var sh=S.shopify[m];if(!sh)return;h+='<tr><td>'+monthLabel(m)+'</td><td class="num" style="color:var(--purple)">'+fmtD(sh.duties)+'</td><td class="num">'+fmtD0(sh.taxes)+'</td></tr>';});h+='</tbody></table></div></div>';}
+  document.getElementById('tab-usintl').innerHTML=h;}
+
+// ===== RENDER: DELIVERY =====
+function rDelivery(){var dd=S.processed.delivData,t=S.processed.totals;var mx=Math.max.apply(null,dd.map(function(d){return d.count;}).concat([1]));
+  var h='<div class="cards"><div class="card"><div class="card-label">Avg Delivery</div><div class="card-value '+(t.avgDeliv!=null&&t.avgDeliv<=3?'green':'orange')+'">'+(t.avgDeliv!=null?fmt(t.avgDeliv,1)+'d':'--')+'</div></div><div class="card"><div class="card-label">On-Time (5d)</div><div class="card-value '+(t.onTime5!=null&&t.onTime5>85?'green':'orange')+'">'+(t.onTime5!=null?fmtPct(t.onTime5):'--')+'</div></div></div>';
+  h+='<div class="chart-box" style="margin-bottom:14px"><h3>Distribution</h3><div class="bar-chart">'+dd.map(function(d){return'<div class="bar-row"><div class="bar-label" style="min-width:70px">'+d.name+'</div><div class="bar-track"><div class="bar-fill" style="width:'+d.count/mx*100+'%;background:var(--'+(d.name.includes('8+')?'red':'green')+')">'+fmt(d.count)+'</div></div><div class="bar-val">'+fmtPct(d.pct)+'</div></div>';}).join('')+'</div></div>';
+  document.getElementById('tab-delivery').innerHTML=h;}
+
+// ===== RENDER: WEIGHT =====
+function rWeight(){var wd=S.processed.weightData,t=S.processed.totals;var mx=Math.max.apply(null,wd.map(function(w){return w.count;}).concat([1]));var bn={'0-0.5kg':9.50,'0.5-1kg':11.00,'1-1.5kg':13.50,'1.5-2kg':15.00,'2kg+':17.00};
+  var h='<div class="cards"><div class="card"><div class="card-label">Avg Wt</div><div class="card-value">'+fmt(t.avgActWt,2)+'kg</div></div><div class="card"><div class="card-label">Under 1kg</div><div class="card-value green">'+fmtPct(wd.filter(function(w){return w.name.includes('0-0.5')||w.name.includes('0.5-1');}).reduce(function(a,w){return a+w.pct;},0))+'</div></div><div class="card"><div class="card-label">Label%AOV</div><div class="card-value '+(t.avgValue&&t.avgCost/t.avgValue>.15?'red':'orange')+'">'+(t.avgValue?fmtPct(t.avgCost/t.avgValue*100):'--')+'</div></div></div>';
+  h+='<div class="chart-box" style="margin-bottom:14px"><h3>By Weight</h3><div class="bar-chart">'+wd.map(function(w){return'<div class="bar-row"><div class="bar-label" style="min-width:70px">'+w.name+'</div><div class="bar-track"><div class="bar-fill" style="width:'+w.count/mx*100+'%;background:var(--teal)">'+fmt(w.count)+'</div></div><div class="bar-val">'+fmtPct(w.pct)+'</div></div>';}).join('')+'</div></div>';
+  h+='<div class="table-wrap"><div class="table-scroll"><table><thead><tr><th>Bracket</th><th>Count</th><th>%</th><th>Avg$</th><th>Bench</th><th>Gap</th></tr></thead><tbody>';
+  wd.forEach(function(w){var b=bn[w.name]||0,g=w.avgCost-b;h+='<tr><td style="font-weight:600">'+w.name+'</td><td class="num">'+fmt(w.count)+'</td><td class="num">'+fmtPct(w.pct)+'</td><td class="num" style="color:var(--'+clr(w.avgCost,b,b*1.15)+')">'+fmtD(w.avgCost)+'</td><td class="num" style="color:var(--blue)">'+fmtD(b)+'</td><td class="num" style="color:var(--'+(g>0?'red':'green')+')">'+(g>0?'+':'')+fmtD(g)+'</td></tr>';});
+  h+='</tbody></table></div></div>';document.getElementById('tab-weight').innerHTML=h;}
+
+// ===== RENDER: CARRIERS =====
+function rCarriers(){var cd=S.processed.carrierData;var h='<div class="table-wrap"><div class="table-scroll"><table><thead><tr><th>Carrier</th><th>Service</th><th>Shp</th><th>%</th><th>Cost</th><th>Avg$</th><th>AvgWt</th></tr></thead><tbody>';
+  cd.forEach(function(c){h+='<tr><td style="font-weight:600">'+c.carrier+'</td><td style="color:var(--text-muted);font-size:10px">'+c.service+'</td><td class="num">'+fmt(c.count)+'</td><td class="num">'+fmtPct(c.pct)+'</td><td class="num">'+fmtD0(c.cost)+'</td><td class="num" style="color:var(--'+clr(c.avgCost,12,16)+')">'+fmtD(c.avgCost)+'</td><td class="num">'+fmt(c.avgWt,2)+'kg</td></tr>';});
+  h+='</tbody></table></div></div>';document.getElementById('tab-carriers').innerHTML=h;}
+
+// ===== RENDER: BENCHMARKS =====
+function rBenchmarks(){var t=S.processed.totals;var bm=[{m:'Avg Cost/Parcel',a:t.avgCost,med:11.50,top:9.00,u:'$',lo:true},{m:'Avg Delivery Days',a:t.avgDeliv,med:3.5,top:2.0,u:'d',lo:true},{m:'On-Time (5d)',a:t.onTime5,med:85,top:95,u:'%',lo:false},{m:'Label % AOV',a:t.avgValue?t.avgCost/t.avgValue*100:null,med:12,top:8,u:'%',lo:true},{m:'Carrier Concentration',a:S.processed.carrierData[0]?S.processed.carrierData[0].count/t.totalCount*100:null,med:70,top:50,u:'%',lo:true}];
+  if(S.shopify){var sn=0,sc=0;ALL_MONTHS.forEach(function(m){var sh=S.shopify[m];if(sh)sn+=sh.net;sc+=getShipCost(m).cost+getFCCost(m);});if(sn)bm.unshift({m:'Ship Cost % Revenue',a:sc/sn*100,med:8,top:5,u:'%',lo:true});}
+  var h='<div class="section-header">Kanel vs DTC Food/CPG (&lt;1kg, $2-20M rev)</div><div class="table-wrap"><div class="table-scroll"><table><thead><tr><th>Metric</th><th>Kanel</th><th>Median</th><th>Top25%</th><th>Status</th></tr></thead><tbody>';
+  bm.forEach(function(b){if(b.a==null)return;var s,c;if(b.lo){s=b.a<=b.top?'Outperform':b.a<=b.med?'Good':'Above';c=b.a<=b.top?'badge-green':b.a<=b.med?'badge-blue':'badge-red';}else{s=b.a>=b.top?'Outperform':b.a>=b.med?'At Bench':'Below';c=b.a>=b.top?'badge-green':b.a>=b.med?'badge-orange':'badge-red';}var fv=function(v){return b.u==='$'?fmtD(v):b.u==='d'?fmt(v,1)+'d':fmtPct(v);};
+    h+='<tr><td style="font-weight:600">'+b.m+'</td><td class="num" style="font-weight:700">'+fv(b.a)+'</td><td class="num" style="color:var(--text-muted)">'+fv(b.med)+'</td><td class="num" style="color:var(--blue)">'+fv(b.top)+'</td><td><span class="badge '+c+'">'+s+'</span></td></tr>';});
+  h+='</tbody></table></div></div>';document.getElementById('tab-benchmarks').innerHTML=h;}
+
+// ===== RENDER: DEEP ANALYSIS =====
+function rDeepAnalysis(){
+  var t=S.processed.totals;var ann=t.totalCount/(S.processed.monthlyData.length||1)*12;var opps=[];
+  var cpS=(t.avgCost-10.50)*ann;if(cpS>0)opps.push({t:'Canada Post Volume Negotiation',s:cpS,e:'LOW',d:'Current '+fmtD(t.avgCost)+' avg across '+fmt(t.totalCount)+' shp. At '+fmt(ann,0)+' annualized, target $10.50/parcel = '+fmtD0(cpS)+'/yr savings.',a:'Contact CP rep with annual volume projection. Request commercial plus tiered pricing.'});
+  var lp=S.processed.weightData[0]?S.processed.weightData[0].count:0;var lpct=t.totalCount?lp/t.totalCount*100:0;if(lpct>20){var ps=lp/(S.processed.monthlyData.length||1)*12*1.50;opps.push({t:'Poly Mailers for <0.5kg',s:ps,e:'MED',d:fmt(lp)+' parcels ('+fmtPct(lpct)+') under 0.5kg ship in boxes. Poly mailers save ~$1.50/parcel.',a:'Source poly mailers. SOP: <0.5kg non-fragile = poly mailer.'});}
+  var bc=S.processed.geoData.find(function(g){return g.prov==='BC';});var qc=S.processed.geoData.find(function(g){return g.prov==='QC';});
+  if(bc&&qc&&bc.avgCost>qc.avgCost+4)opps.push({t:'Zone-Variable Shipping Rates',s:bc.count*2*12/(S.processed.monthlyData.length||1),e:'MED',d:'BC: '+fmtD(bc.avgCost)+' vs QC: '+fmtD(qc.avgCost)+'. $'+(bc.avgCost-qc.avgCost).toFixed(2)+' spread. Pass partial cost via tiered rates.',a:'Shopify: QC/ON=free, West=$4.99, Atlantic=$3.99, US=$9.99.'});
+  var exp=0;S.processed.carrierData.forEach(function(c){if(c.service.toLowerCase().indexOf('expedited')>=0)exp+=c.count;});
+  if(exp/t.totalCount>0.9){var sv=t.totalCount*0.1*3.5*12/(S.processed.monthlyData.length||1);opps.push({t:'Regular Parcel Option',s:sv,e:'MED',d:fmtPct(exp/t.totalCount*100)+' ships Expedited. Regular is ~30% cheaper. 10% adoption saves ~'+fmtD0(sv)+'/yr.',a:'Add Standard Shipping (5-8d) option. Let customer choose.'});}
+  if(S.shopify){var sl=0;ALL_MONTHS.forEach(function(m){if(S.shopify[m])sl+=S.shopify[m].label_costs;});if(sl>0&&t.totalCost>0)opps.push({t:'Reconcile Label Costs (OC vs Shopify)',s:0,e:'LOW',d:'Shopify: '+fmtD0(sl)+' labels. OrderCup: '+fmtD0(t.totalCost)+'. May overlap. True cost could be lower.',a:'Match order IDs between systems to find overlap months.'});}
+  if(t.usCount<t.totalCount*0.02)opps.push({t:'US Cross-Border Growth',s:0,e:'HIGH',d:'Only '+fmt(t.usCount)+' US orders ('+fmtPct(t.usCount/t.totalCount*100)+'). US spice market is 10x Canada.',a:'Enable DDP. Get ChitChats/Asendia quotes. Target <$10 USD/parcel.'});
+  if(S.freightcom){var fc=0;ALL_MONTHS.forEach(function(m){fc+=getFCCost(m);});if(fc>5000)opps.push({t:'Wholesale Ship Cost Recovery',s:fc*0.5,e:'LOW',d:'Freightcom: '+fmtD0(fc)+'. If not billed back, recover 50% = '+fmtD0(fc*0.5)+'/yr.',a:'Audit wholesale pricing. Add freight surcharge or increase price 1-2%.'});}
+  if(t.avgValue>0&&t.avgValue<100)opps.push({t:'Free Shipping Threshold $75-85',s:t.totalCount*0.15*t.avgCost*12/(S.processed.monthlyData.length||1),e:'LOW',d:'AOV '+fmtD(t.avgValue)+'. $75 threshold pushes add-to-cart. Sub-threshold pays flat rate.',a:'Shopify: Free over $75, $7.99 under. A/B test.'});
+  opps.sort(function(a,b){return(b.s||0)-(a.s||0);});var ts=opps.reduce(function(a,o){return a+(o.s||0);},0);
+  var h='<div class="cards"><div class="card"><div class="card-label">Opportunities</div><div class="card-value">'+opps.length+'</div></div><div class="card"><div class="card-label">Est. Annual Savings</div><div class="card-value green">'+fmtD0(ts)+'</div></div><div class="card"><div class="card-label">Quick Wins</div><div class="card-value green">'+opps.filter(function(o){return o.e==='LOW';}).length+'</div></div><div class="card"><div class="card-label">Current Ann. Spend</div><div class="card-value red">'+fmtD0(t.totalCost/(S.processed.monthlyData.length||1)*12)+'</div></div></div>';
+  h+='<div class="section-header">Cost Reduction Roadmap</div>';
+  opps.forEach(function(o,i){h+='<div class="action-card"><div class="action-priority">'+(i+1)+'</div><div class="action-body"><div class="action-title">'+o.t+(o.s?' <span style="color:var(--green);font-family:var(--mono);font-size:12px">'+fmtD0(o.s)+'/yr</span>':'')+'<span class="badge '+(o.e==='LOW'?'badge-green':o.e==='HIGH'?'badge-red':'badge-orange')+'" style="margin-left:6px">'+o.e+'</span></div><div class="action-detail">'+o.d+'</div><div style="margin-top:6px;padding:6px 10px;background:var(--surface-2);border-radius:6px;font-size:10px;color:var(--accent)"><strong>Next Step:</strong> '+o.a+'</div></div></div>';});
+  document.getElementById('tab-deepanalysis').innerHTML=h;}
+
+// ===== RENDER: SHIPMENTS =====
+function rShipments(){var all=S.processed.shipments,d=all;if(S.shipQ){var q=S.shipQ.toLowerCase();d=d.filter(function(s){return(s.orderNum+s.carrier+s.service+s.prov+s.city).toLowerCase().indexOf(q)>=0;});}S._c.sf=d;
+  var h='<div class="filters"><input type="text" class="search-input" placeholder="Search..." oninput="S.shipQ=this.value;rShipments()" value="'+S.shipQ+'"><span class="result-count" style="margin-left:8px">'+fmt(d.length)+' shp</span><button class="hbtn" style="margin-left:auto" onclick="xCSV()">Export</button></div>';
+  h+='<div class="table-wrap"><div class="table-scroll"><table><thead><tr><th>Order</th><th>Date</th><th>Carrier</th><th>Svc</th><th>Cost</th><th>Wt</th><th>DIM</th><th>Items</th><th>Val</th><th>Prov</th><th>City</th><th>Del</th></tr></thead><tbody>';
+  d.slice(-500).reverse().forEach(function(s){h+='<tr><td style="font-family:var(--mono);font-size:10px">'+s.orderNum+'</td><td style="font-size:10px">'+fmtDate(s.shipDate)+'</td><td>'+s.carrier+'</td><td style="font-size:10px;color:var(--text-muted)">'+s.service+'</td><td class="num" style="font-weight:600">'+fmtD(s.cost)+'</td><td class="num">'+fmt(s.actualWt,2)+'</td><td>'+(s.isVol?'<span style="color:var(--orange);font-size:9px">DIM</span>':'')+'</td><td class="num">'+(s.items||'--')+'</td><td class="num">'+(s.value?fmtD(s.value):'--')+'</td><td>'+(s.isUS?'<span style="color:var(--purple)">'+s.prov+'</span>':s.prov)+'</td><td style="font-size:10px;color:var(--text-muted)">'+s.city+'</td><td class="num">'+(s.delivDays!=null?s.delivDays+'d':'--')+'</td></tr>';});
+  if(d.length>500)h+='<tr><td colspan="12" style="text-align:center;color:var(--text-muted);padding:12px">500 of '+fmt(d.length)+'</td></tr>';
+  h+='</tbody></table></div></div>';document.getElementById('tab-shipments').innerHTML=h;}
+
+function xCSV(){var d=S._c.sf||S.processed.shipments;var r=[['Order','Date','Carrier','Service','Cost','Weight','Items','Value','Province','City','Country','US','DelivDays']];d.forEach(function(s){r.push([s.orderNum,s.shipDate,s.carrier,s.service,s.cost,s.actualWt,s.items,s.value,s.prov,s.city,s.country,s.isUS?'Y':'N',s.delivDays!=null?s.delivDays:'']);});var csv=r.map(function(x){return x.map(function(c){return'"'+String(c).replace(/"/g,'""')+'"';}).join(',');}).join('\n');var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='Kanel_Shipments.csv';a.click();}
+function exportAllCSV(){xCSV();}
+
+function renderAll(){if(!S.processed)return;rOverview();rMonthly();rGeo();rUSIntl();rDelivery();rWeight();rCarriers();rBenchmarks();rDeepAnalysis();rShipments();}
+
+function saveConfig(){var url=document.getElementById('setupUrl').value.trim().replace(/\/$/,''),since=document.getElementById('setupSince').value.trim();var err=document.getElementById('setupError');if(!url){err.textContent='URL required';err.style.display='block';return;}err.textContent='Connecting...';err.style.display='block';err.style.color='var(--text-muted)';fetch(url+'/api/health').then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();}).then(function(d){if(d.status!=='ok')throw new Error('Bad');S.config={url:url,since:since||'2025-01-01'};localStorage.setItem('ks-cfg',JSON.stringify(S.config));document.getElementById('setupScreen').classList.add('hidden');document.getElementById('app').classList.remove('hidden');refreshData();}).catch(function(e){err.style.color='var(--red)';err.textContent='Failed: '+e.message;});}
+function refreshData(){var btn=document.getElementById('refreshBtn');btn.disabled=true;btn.innerHTML='Loading...';fetch(S.config.url+'/api/shipping-data?since='+S.config.since).then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();}).then(function(data){S.raw=data;S.processed=processShipments(S.raw);buildMonthRange();document.getElementById('lastUpdated').textContent='Updated '+new Date().toLocaleString('en-CA',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})+' | '+fmt(S.processed.totals.totalCount)+' shp';renderAll();}).catch(function(e){alert('Failed: '+e.message);}).finally(function(){btn.disabled=false;btn.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="width:14px;height:14px"><path d="M1 4v6h6"/><path d="M23 20v-6h-6"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/></svg>Refresh';});}
+function loadConfig(){var saved=localStorage.getItem('ks-cfg');if(saved){try{S.config=JSON.parse(saved);document.getElementById('setupScreen').classList.add('hidden');document.getElementById('app').classList.remove('hidden');refreshData();}catch(e){localStorage.removeItem('ks-cfg');}}}
+loadConfig();
+
+</script>
+</body>
+</html>
